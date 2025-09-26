@@ -7,8 +7,8 @@ import pickle
 # -----------------------------
 # Load trained model and scaler
 # -----------------------------
-model_path = "C:\\Users\\admin\\Downloads\\best_tree_model.pkl"  # Path to your trained Gradient Boosting model
-scaler_path = "C:\\Users\\admin\\Downloads\\scaler.pkl"          # Path to your trained StandardScaler
+model_path = "best_tree_model.pkl"  # Path to your trained Gradient Boosting model
+scaler_path = "scaler.pkl"          # Path to your trained StandardScaler
 
 with open(model_path, "rb") as f:
     model = pickle.load(f)
@@ -136,3 +136,4 @@ st.markdown(
     "<p style='color:#00ffea;text-align:center;font-family:Orbitron, sans-serif;'>Made with 💫 by Your Team</p>",
     unsafe_allow_html=True
 )
+
