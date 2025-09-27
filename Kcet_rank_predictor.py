@@ -20,7 +20,7 @@ with open(scaler_path, "rb") as f:
 # -----------------------------
 # Assuming you have a CSV file "colleges.csv" with columns:
 # ['college_id', 'college_name', 'rank', 'location', 'type']
-college_df = pd.read_excel("final_database.xlsx")
+college_df = pd.read_excel("colleges_list.xlsx")
 
 # -----------------------------
 # Total students per year (hardcoded)
@@ -163,5 +163,6 @@ st.markdown(
     "<p style='color:#00ffea;text-align:center;font-family:Orbitron, sans-serif;'>Made with 💫 by Your Team</p>",
     unsafe_allow_html=True
 )
+
 
 
