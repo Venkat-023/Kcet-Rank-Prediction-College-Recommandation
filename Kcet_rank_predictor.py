@@ -124,7 +124,7 @@ if submitted:
     # -----------------------------
     # Filter Eligible Colleges based on predicted rank
     # -----------------------------
-    eligible_colleges = college_df[college_df['rank'] >= int_predicted_rank].sort_values('rank').reset_index(drop=True)
+    eligible_colleges = college_df[college_df['GM'] >= int_predicted_rank].sort_values('rank').reset_index(drop=True)
     
     # -----------------------------
     # Display college recommendations
@@ -163,4 +163,5 @@ st.markdown(
     "<p style='color:#00ffea;text-align:center;font-family:Orbitron, sans-serif;'>Made with 💫 by Your Team</p>",
     unsafe_allow_html=True
 )
+
 
