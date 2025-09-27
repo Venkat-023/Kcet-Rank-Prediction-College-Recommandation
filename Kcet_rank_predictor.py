@@ -2,7 +2,6 @@ import streamlit as st
 import numpy as np
 import pickle
 import pandas as pd
-from collections import deque
 
 # -----------------------------
 # Load trained model and scaler
@@ -21,7 +20,7 @@ with open(scaler_path, "rb") as f:
 # -----------------------------
 college_df = pd.read_excel("colleges_list.xlsx")
 
-# Ensure GM column is numeric (invalid values -> 0)
+# Ensure GM column is numeric (invalid entries -> 0)
 college_df["GM"] = pd.to_numeric(college_df["GM"], errors="coerce").fillna(0).astype(int)
 
 # -----------------------------
@@ -127,8 +126,8 @@ if submitted:
     # Filter Eligible Colleges based on predicted rank
     # -----------------------------
     eligible_colleges = (
-        college_df[college_df['GM'] >= int_predicted_rank]
-        .sort_values('rank')
+        college_df[college_df['GM'] >= int_predicted_rank]  # filter by GM
+        .sort_values('GM')                                   # sort by GM
         .reset_index(drop=True)
     )
     
@@ -152,10 +151,10 @@ if submitted:
         styled_df = eligible_colleges.style.set_table_styles(
             [
                 {'selector': 'th', 'props': [('background-color', '#ff3c00'), 
-                                            ('color', 'white'),
-                                            ('font-family', 'Orbitron, sans-serif')]},
+                                             ('color', 'white'),
+                                             ('font-family', 'Orbitron, sans-serif')]},
                 {'selector': 'td', 'props': [('color', '#00ffea'),
-                                            ('font-family', 'Orbitron, sans-serif')]}
+                                             ('font-family', 'Orbitron, sans-serif')]}
             ]
         )
         st.dataframe(styled_df, height=400)
