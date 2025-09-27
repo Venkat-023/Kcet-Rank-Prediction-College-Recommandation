@@ -1,14 +1,13 @@
-# streamlit_app.py
-
 import streamlit as st
 import numpy as np
 import pickle
+import pandas as pd
 
 # -----------------------------
 # Load trained model and scaler
 # -----------------------------
-model_path = "best_tree_model.pkl"  # Path to your trained Gradient Boosting model
-scaler_path = "scaler.pkl"          # Path to your trained StandardScaler
+model_path = "best_tree_model.pkl"
+scaler_path = "scaler.pkl"
 
 with open(model_path, "rb") as f:
     model = pickle.load(f)
@@ -17,7 +16,14 @@ with open(scaler_path, "rb") as f:
     scaler = pickle.load(f)
 
 # -----------------------------
-# Hardcoded total students per year
+# Load college database CSV
+# -----------------------------
+# Assuming you have a CSV file "colleges.csv" with columns:
+# ['college_id', 'college_name', 'rank', 'location', 'type']
+college_df = pd.read_csv("colleges.csv")
+
+# -----------------------------
+# Total students per year (hardcoded)
 # -----------------------------
 total_students_per_year = {
     2020: 120000,
@@ -30,7 +36,7 @@ total_students_per_year = {
 }
 
 # -----------------------------
-# Streamlit Page Config
+# Streamlit Page Config and Header
 # -----------------------------
 st.set_page_config(
     page_title="KCET Rank Predictor",
@@ -39,17 +45,14 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# -----------------------------
-# Sci-Fi UI Header
-# -----------------------------
 st.markdown(
     """
     <div style="background-color:#0f111a;padding:15px;border-radius:10px">
     <h1 style="color:#00ffea;text-align:center;font-family:Orbitron, sans-serif;">
-        🚀 KCET Rank Predictor 3000
+        🚀 KCET Rank Predictor & College Recommender 3000
     </h1>
     <p style="color:#00ffea;text-align:center;font-family:Orbitron, sans-serif;">
-        Enter your scores below to see your predicted rank
+        Enter your scores below to see your predicted rank and potential colleges
     </p>
     </div>
     """, unsafe_allow_html=True
@@ -58,7 +61,7 @@ st.markdown(
 st.markdown("---")
 
 # -----------------------------
-# User Input
+# User Input Form
 # -----------------------------
 with st.form("score_form"):
     st.markdown("### Input Your Marks")
@@ -75,27 +78,20 @@ if submitted:
     # -----------------------------
     kcet_percent = (kcet_marks / 180) * 100
     board_percent = (board_marks / 300) * 100
-    
-    # Weighted score (50% KCET + 50% Board)
     score = (kcet_percent + board_percent) / 2.0
     
-    # Total students
     total_students = total_students_per_year[year]
     
     # -----------------------------
-    # Prepare features for model
+    # Prepare features and predict
     # -----------------------------
-    # Model expects: [score, year, total_students]
     X_input = np.array([[score, year, total_students]], dtype=float)
-    
-    # Apply StandardScaler
     X_input_scaled = scaler.transform(X_input)
-    
-    # Predict rank
     predicted_rank = model.predict(X_input_scaled)[0]
+    int_predicted_rank = int(predicted_rank)
     
     # -----------------------------
-    # Display Calculated Scores
+    # Display Calculated Scores & Predicted Rank
     # -----------------------------
     st.markdown(
         f"""
@@ -112,21 +108,52 @@ if submitted:
         """, unsafe_allow_html=True
     )
     
-    # -----------------------------
-    # Display Predicted Rank
-    # -----------------------------
     st.markdown(
         f"""
         <div style="background-color:#0f111a;padding:20px;border-radius:10px;margin-top:15px">
         <h2 style="color:#ff3c00;font-family:Orbitron, sans-serif;text-align:center;">
-            🛸 Predicted Rank: {int(predicted_rank)}
+            🛸 Predicted Rank: {int_predicted_rank}
         </h2>
         <p style="color:#00ffea;text-align:center;font-family:Orbitron, sans-serif;">
-            Based on year: {year} and total students: {total_students}
+            Based on exam year: {year} and total students: {total_students}
         </p>
         </div>
         """, unsafe_allow_html=True
     )
+
+    # -----------------------------
+    # Filter Eligible Colleges based on predicted rank
+    # -----------------------------
+    eligible_colleges = college_df[college_df['rank'] >= int_predicted_rank].sort_values('rank').reset_index(drop=True)
+    
+    # -----------------------------
+    # Display college recommendations
+    # -----------------------------
+    st.markdown(
+        f"""
+        <div style="background-color:#0f111a;padding:20px;border-radius:10px;margin-top:20px">
+        <h2 style="color:#ff3c00;font-family:Orbitron, sans-serif;text-align:center;">
+            🎓 Colleges You Can Get Into (Rank ≥ {int_predicted_rank})
+        </h2>
+        </div>
+        """, unsafe_allow_html=True
+    )
+    
+    if eligible_colleges.empty:
+        st.warning("No colleges found that match your predicted rank. Try adjusting your inputs or checking back later.")
+    else:
+        # Display the table with custom styling
+        styled_df = eligible_colleges.style.set_table_styles(
+            [
+                {'selector': 'th', 'props': [('background-color', '#ff3c00'), 
+                                            ('color', 'white'),
+                                            ('font-family', 'Orbitron, sans-serif')]},
+                {'selector': 'td', 'props': [('color', '#00ffea'),
+                                            ('font-family', 'Orbitron, sans-serif')]}
+            ]
+        )
+        st.dataframe(styled_df, height=400)
+
 
 # -----------------------------
 # Footer
@@ -136,4 +163,3 @@ st.markdown(
     "<p style='color:#00ffea;text-align:center;font-family:Orbitron, sans-serif;'>Made with 💫 by Your Team</p>",
     unsafe_allow_html=True
 )
-
