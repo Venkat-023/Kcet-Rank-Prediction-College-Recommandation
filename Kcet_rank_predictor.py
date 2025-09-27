@@ -2,6 +2,7 @@ import streamlit as st
 import numpy as np
 import pickle
 import pandas as pd
+from collections import deque
 
 # -----------------------------
 # Load trained model and scaler
@@ -16,11 +17,12 @@ with open(scaler_path, "rb") as f:
     scaler = pickle.load(f)
 
 # -----------------------------
-# Load college database CSV
+# Load college database Excel
 # -----------------------------
-# Assuming you have a CSV file "colleges.csv" with columns:
-# ['college_id', 'college_name', 'rank', 'location', 'type']
 college_df = pd.read_excel("colleges_list.xlsx")
+
+# Ensure GM column is numeric (invalid values -> 0)
+college_df["GM"] = pd.to_numeric(college_df["GM"], errors="coerce").fillna(0).astype(int)
 
 # -----------------------------
 # Total students per year (hardcoded)
@@ -124,7 +126,11 @@ if submitted:
     # -----------------------------
     # Filter Eligible Colleges based on predicted rank
     # -----------------------------
-    eligible_colleges = college_df[college_df['GM'] >= int_predicted_rank].sort_values('rank').reset_index(drop=True)
+    eligible_colleges = (
+        college_df[college_df['GM'] >= int_predicted_rank]
+        .sort_values('rank')
+        .reset_index(drop=True)
+    )
     
     # -----------------------------
     # Display college recommendations
@@ -133,7 +139,7 @@ if submitted:
         f"""
         <div style="background-color:#0f111a;padding:20px;border-radius:10px;margin-top:20px">
         <h2 style="color:#ff3c00;font-family:Orbitron, sans-serif;text-align:center;">
-            🎓 Colleges You Can Get Into (Rank ≥ {int_predicted_rank})
+            🎓 Colleges You Can Get Into (GM ≥ {int_predicted_rank})
         </h2>
         </div>
         """, unsafe_allow_html=True
@@ -154,7 +160,6 @@ if submitted:
         )
         st.dataframe(styled_df, height=400)
 
-
 # -----------------------------
 # Footer
 # -----------------------------
@@ -163,6 +168,3 @@ st.markdown(
     "<p style='color:#00ffea;text-align:center;font-family:Orbitron, sans-serif;'>Made with 💫 by Your Team</p>",
     unsafe_allow_html=True
 )
-
-
-
